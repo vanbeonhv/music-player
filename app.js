@@ -35,7 +35,6 @@ const app = {
   isPlaying: false,
   isRandom: false,
   isRepeat: false,
-  config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {},
   songs: [
     {
       name: "Em oi cu vui",
@@ -87,10 +86,6 @@ const app = {
         "https://photo-resize-zmp3.zmdcdn.me/w94_r1x1_webp/covers/b/5/b5aa78aa102467e5648160a4ac93df8e_1486467660.jpg",
     },
   ],
-  setConfig: function (key, value) {
-    this.config[key] = value;
-    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config));
-  },
 
   render: function () {
     const htmls = this.songs.map((song, index) => {
@@ -202,15 +197,12 @@ const app = {
     // Khi bấm nút random
     randomBtn.onclick = function () {
       _this.isRandom = !_this.isRandom;
-      _this.setConfig("isRandom", _this.isRandom);
       this.classList.toggle("active", _this.isRandom);
     };
 
     // Khi bấm nút repeat
     repeatBtn.onclick = function () {
       _this.isRepeat = !_this.isRepeat;
-      _this.setConfig("isRepeat", _this.isRepeat);
-
       this.classList.toggle("active", _this.isRepeat);
     };
 
@@ -268,9 +260,6 @@ const app = {
     this.loadCurrentSong();
   },
 
-  // loadConfig: function() {
-  //   this.isRandom =
-  // },
   prevSong: function () {
     this.currentIndex--;
     if (this.currentIndex < 0) {
