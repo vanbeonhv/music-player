@@ -1,17 +1,41 @@
 "use strict";
 
+/**
+ * 1. Render songs
+ * 2. Scroll top
+ * 3. Play / pause / seek
+ * 4. Cd rotate
+ * 5. Next / prev
+ * 6. Random
+ * 7. Next / Repeat when ended
+ * 8. Active song
+ * 9. Scroll active song into view
+ * 10. Play song when click
+ */
+
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
+
+const PLAYER_STORAGE_KEY = "MARC-PLAYER";
 const cd = $(".cd");
 const heading = $("header h2");
 const cdThumb = $(".cd-thumb");
 const audio = $("#audio");
-const playBtn = $(".btn-toggle-play");
 const player = $(".player");
+const progress = $("#progress");
+const repeatBtn = $(".btn-repeat");
+const prevBtn = $(".btn-prev");
+const playBtn = $(".btn-toggle-play");
+const nextBtn = $(".btn-next");
+const randomBtn = $(".btn-random");
+const playList = $(".playlist");
 
 const app = {
   currentIndex: 0,
   isPlaying: false,
+  isRandom: false,
+  isRepeat: false,
+  config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {},
   songs: [
     {
       name: "Em oi cu vui",
@@ -63,11 +87,17 @@ const app = {
         "https://photo-resize-zmp3.zmdcdn.me/w94_r1x1_webp/covers/b/5/b5aa78aa102467e5648160a4ac93df8e_1486467660.jpg",
     },
   ],
+  setConfig: function (key, value) {
+    this.config[key] = value;
+    localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config));
+  },
 
   render: function () {
-    const htmls = this.songs.map((song) => {
+    const htmls = this.songs.map((song, index) => {
       return `
-              <div class="song">
+              <div class="song ${
+                index === this.currentIndex ? "active" : ""
+              }" data-index="${index}">
                     <div class="thumb" style="background-image:
                         url('${song.image}')">
                     </div>
@@ -81,8 +111,9 @@ const app = {
                 </div>
                 `;
     });
-    $(".playlist").innerHTML = htmls.join("  ");
+    playList.innerHTML = htmls.join("  ");
   },
+
   defineProperties: function () {
     Object.defineProperty(this, "currentSong", {
       get: function () {
@@ -95,6 +126,15 @@ const app = {
     const _this = this; //Để lưu this trỏ vào app
     const cdWidth = cd.offsetWidth;
 
+    //Xử lý CD quay và dừng
+    const cdThumbAnimate = cdThumb.animate([{ transform: "rotate(360deg)" }], {
+      //Đoạn này không hiểu về animate
+      duration: 10000, //10 seconds
+      iterations: Infinity,
+    });
+
+    cdThumbAnimate.pause();
+
     // Xử lý phóng to / thu nhỏ CD
     document.onscroll = function () {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -103,8 +143,8 @@ const app = {
       cd.style.width = newCdWidth > 0 ? newCdWidth + "px" : 0;
       cd.style.opacity = newCdWidth / cdWidth;
     };
+
     //Xử lý khi click play
-    console.log(playBtn);
     playBtn.onclick = function () {
       if (_this.isPlaying) {
         //ở đây mà dùng this thì this trỏ vào playBtn
@@ -118,18 +158,138 @@ const app = {
     audio.onplay = function () {
       _this.isPlaying = true;
       player.classList.add("playing");
+      cdThumbAnimate.play();
     };
+
     //Khi song bị pause
     audio.onpause = function () {
       _this.isPlaying = false;
       player.classList.remove("playing");
+      cdThumbAnimate.pause();
     };
+
+    // Khi tiến độ bài hát thay đổi
+    audio.ontimeupdate = function () {
+      if (this.duration) {
+        const progressPercent = (this.currentTime / this.duration) * 100;
+        progress.value = progressPercent;
+      }
+    };
+
+    // Khi bấm nút next
+    nextBtn.onclick = function () {
+      if (!_this.isRandom) {
+        _this.nextSong();
+      } else {
+        _this.playRandomSong();
+      }
+      audio.play();
+      _this.render();
+      _this.scrollToActiveSong();
+    };
+
+    // Khi bấm nút prev
+    prevBtn.onclick = function () {
+      if (!_this.isRandom) {
+        _this.prevSong();
+      } else {
+        _this.playRandomSong();
+      }
+      audio.play();
+      _this.render();
+      _this.scrollToActiveSong();
+    };
+    // Khi bấm nút random
+    randomBtn.onclick = function () {
+      _this.isRandom = !_this.isRandom;
+      _this.setConfig("isRandom", _this.isRandom);
+      this.classList.toggle("active", _this.isRandom);
+    };
+
+    // Khi bấm nút repeat
+    repeatBtn.onclick = function () {
+      _this.isRepeat = !_this.isRepeat;
+      _this.setConfig("isRepeat", _this.isRepeat);
+
+      this.classList.toggle("active", _this.isRepeat);
+    };
+
+    // Khi tua bài hát
+    progress.oninput = function (e) {
+      const seekTime = (e.target.value / 100) * audio.duration;
+      audio.currentTime = seekTime;
+    };
+
+    // Xử lý next khi audio ended
+    audio.onended = function () {
+      if (!_this.isRepeat) {
+        audio.play();
+      } else {
+        nextBtn.click();
+      }
+    };
+
+    //Lắng nghe hành vi click vào playlist
+    playList.onclick = function (e) {
+      const songNode = e.target.closest(".song:not(.active)");
+      if (songNode && !e.target.closest(".option")) {
+        //Xử lý khi click vào song
+        if (songNode) {
+          _this.currentIndex = Number(songNode.dataset.index);
+          _this.loadCurrentSong();
+          _this.scrollToActiveSong();
+          audio.play();
+          _this.render();
+        }
+      }
+    };
+  },
+
+  scrollToActiveSong: function () {
+    setTimeout(() => {
+      $(".song.active").scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
   },
 
   loadCurrentSong: function () {
     heading.textContent = this.currentSong.name;
     cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
     audio.src = this.currentSong.path;
+  },
+
+  nextSong: function () {
+    this.currentIndex++;
+    if (this.currentIndex >= this.songs.length) {
+      this.currentIndex = 0;
+    }
+    this.loadCurrentSong();
+  },
+
+  // loadConfig: function() {
+  //   this.isRandom =
+  // },
+  prevSong: function () {
+    this.currentIndex--;
+    if (this.currentIndex < 0) {
+      this.currentIndex = this.songs.length - 1;
+    }
+    this.loadCurrentSong();
+  },
+
+  playRandomSong: function () {
+    let newIndex;
+    do {
+      newIndex = Math.floor(Math.random() * this.songs.length);
+    } while (newIndex === this.currentIndex);
+    this.currentIndex = newIndex;
+    this.loadCurrentSong();
+  },
+
+  playRepeatSong: function () {
+    this.loadCurrentSong();
   },
 
   start: function () {
