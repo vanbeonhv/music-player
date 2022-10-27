@@ -176,7 +176,6 @@ const app = {
       player.classList.add("playing");
       cdThumbAnimate.play();
     };
-
     //Khi song bị pause
     audio.onpause = function () {
       _this.isPlaying = false;
@@ -256,6 +255,65 @@ const app = {
         }
       }
     };
+    // Khi bấm nút random
+    randomBtn.onclick = function () {
+      _this.isRandom = !_this.isRandom;
+      this.classList.toggle("active", _this.isRandom);
+    };
+
+    // Khi bấm nút repeat
+    repeatBtn.onclick = function () {
+      _this.isRepeat = !_this.isRepeat;
+      this.classList.toggle("active", _this.isRepeat);
+    };
+
+    // Khi tua bài hát
+    progress.oninput = function (e) {
+      const seekTime = (e.target.value / 100) * audio.duration;
+      audio.currentTime = seekTime;
+    };
+
+    // Xử lý next khi audio ended
+    audio.onended = function () {
+      if (!_this.isRepeat) {
+        audio.play();
+      } else {
+        nextBtn.click();
+      }
+    };
+
+    //Lắng nghe hành vi click vào playlist
+    playList.onclick = function (e) {
+      const songNode = e.target.closest(".song:not(.active)");
+      if (songNode && !e.target.closest(".option")) {
+        //Xử lý khi click vào song
+        if (songNode) {
+          _this.currentIndex = Number(songNode.dataset.index);
+          _this.loadCurrentSong();
+          _this.scrollToActiveSong();
+          audio.play();
+          _this.render();
+        }
+      }
+    };
+  },
+
+  scrollToActiveSong: function () {
+    setTimeout(() => {
+      $(".song.active").scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
+  },
+
+  scrollToActiveSong: function () {
+    setTimeout(() => {
+      $(".song.active").scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
   },
 
   scrollToActiveSong: function () {
