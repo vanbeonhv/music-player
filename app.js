@@ -85,6 +85,27 @@ const app = {
       image:
         "https://photo-resize-zmp3.zmdcdn.me/w94_r1x1_webp/covers/b/5/b5aa78aa102467e5648160a4ac93df8e_1486467660.jpg",
     },
+    {
+      name: "Hai nguoi xa la",
+      singer: "Madihu, Vu",
+      path: "./assets/music/Hai-Nguoi-Xa-Madihu-Vu-Ngan-Ha.mp3",
+      image:
+        "https://photo-resize-zmp3.zmdcdn.me/w94_r1x1_webp/covers/4/4/44edf7fa8189f141223428fb9b5c8a72_1483009189.jpg",
+    },
+    {
+      name: "Em da biet (Acoustic)",
+      singer: "Suni Ha Linh",
+      path: "./assets/music/Em-Da-Biet-Acoustic-Suni-Ha-Linh.mp3",
+      image:
+        "https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_webp/covers/1/b/1b40c8dd4ecd53311c64fef4dd8f9e63_1457426800.jpg",
+    },
+    {
+      name: "Trot yeu",
+      singer: "Trung Quan Idol",
+      path: "./assets/music/Trot-Yeu-Trung-Quan-Idol.mp3",
+      image:
+        "https://photo-resize-zmp3.zmdcdn.me/w240_r1x1_webp/covers/4/6/46138094b1b336311460c731ea2d5e5d_1392226332.jpg",
+    },
   ],
 
   render: function () {

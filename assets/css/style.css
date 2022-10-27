@@ -38,12 +38,14 @@ html {
 
 .dashboard {
     padding: 16px 16px 14px;
-    background-color: #ccc;
+    background-color: #fff;
     position: fixed;
     top: 0;
     width: 100%;
     max-width: 480px;
     border-bottom: 1px solid #ebebeb;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
 /* HEADER */
@@ -138,7 +140,7 @@ header h2 {
     display: flex;
     align-items: center;
     margin-bottom: 12px;
-    background-color: #ccc;
+    background-color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
